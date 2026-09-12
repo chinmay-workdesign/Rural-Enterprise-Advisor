@@ -113,9 +113,10 @@ else:
             with c_left:
                 st.markdown("#### 👤 Beneficiary & Trade Details")
                 st.write(f"**Beneficiary Name:** {b.full_name or 'Rural Entrepreneur'}")
-                st.write(f"**WhatsApp Number:** `{b.whatsapp_number}`")
+                contact_info = f"Telegram Chat: `{b.telegram_chat_id}`" if getattr(b, 'primary_channel', '') == 'telegram' else f"WhatsApp: `{b.whatsapp_number}`"
+                st.write(f"**Contact:** {contact_info}")
                 st.write(f"**Location:** {b.district}, {b.state or 'Karnataka'}")
-                st.write(f"**Preferred Language:** {b.preferred_language.capitalize()}")
+                st.write(f"**Preferred Language:** {(b.preferred_language or 'kannada').capitalize()}")
                 st.write(f"**Target Enterprise:** **{p.business_trade}**")
                 st.write(f"**Classification:** `{p.scheme_tier}`")
 
@@ -128,6 +129,14 @@ else:
                     {"Metric": "Projected DSCR", "Amount": f"{float(p.projected_dscr):.2f}", "Notes": "Debt Service Coverage Ratio"}
                 ])
                 st.table(f_df)
+
+                ctx = b.conversation_context or {}
+                multi = ctx.get("multi_schemes", {}) if isinstance(ctx, dict) else {}
+                schemes = multi.get("schemes", [])
+                if schemes:
+                    st.markdown("#### 🏛️ Recommended Schemes & Capital Subsidies")
+                    for s in schemes:
+                        st.info(f"**{s.get('name', s.get('type'))}** ({s.get('interest_rate', 'Concessional')})\n\n{s.get('highlights', '')}")
 
                 if p.dpr_pdf_url:
                     st.markdown(f"📄 **Detailed Project Report (PDF):** [Open / Download DPR]({p.dpr_pdf_url})")

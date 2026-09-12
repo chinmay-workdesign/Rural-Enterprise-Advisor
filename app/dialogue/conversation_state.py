@@ -865,6 +865,37 @@ def _handle_extraction_and_advisory(db, beneficiary, text: str, context: Dict[st
     beneficiary.conversation_context = context
     db.commit()
 
+    # Record or update an active DRAFT proposal for real-time admin visibility
+    from app.db.models import EnterpriseProposal
+    existing_p = (
+        db.query(EnterpriseProposal)
+        .filter(EnterpriseProposal.beneficiary_id == beneficiary.id)
+        .order_by(EnterpriseProposal.created_at.desc())
+        .first()
+    )
+    if existing_p and existing_p.status == "DRAFT":
+        existing_p.business_trade = trade
+        existing_p.scheme_tier = fin_result["scheme"]
+        existing_p.project_cost = fin_result["cost"]
+        existing_p.sanctioned_loan = fin_result["loan"]
+        existing_p.beneficiary_margin = fin_result["margin"]
+        existing_p.monthly_emi = fin_result["emi"]
+        existing_p.projected_dscr = cashflows.get("dscr", 1.65)
+        db.commit()
+    else:
+        crud.create_proposal(db, {
+            "beneficiary_id": beneficiary.id,
+            "business_trade": trade,
+            "scheme_tier": fin_result["scheme"],
+            "project_cost": fin_result["cost"],
+            "sanctioned_loan": fin_result["loan"],
+            "beneficiary_margin": fin_result["margin"],
+            "monthly_emi": fin_result["emi"],
+            "projected_dscr": cashflows.get("dscr", 1.65),
+            "status": "DRAFT",
+            "dpr_pdf_url": None
+        })
+
     # 4. Synthesize structured multi-scheme advisory text via Gemini/LLM
     advisory = generate_advisory_message(
         financial_data=fin_result,
@@ -888,20 +919,37 @@ def _handle_dpr_generation(db, beneficiary, context: Dict[str, Any]):
     trade = context.get("trade", "Rural Enterprise")
     lang = beneficiary.preferred_language or "kannada"
 
-    # Create proposal row in database with status='DRAFT'
-    proposal_data = {
-        "beneficiary_id": beneficiary.id,
-        "business_trade": trade,
-        "scheme_tier": fin["scheme"],
-        "project_cost": fin["cost"],
-        "sanctioned_loan": fin["loan"],
-        "beneficiary_margin": fin["margin"],
-        "monthly_emi": fin["emi"],
-        "projected_dscr": cashflows.get("dscr", 1.65),
-        "status": "DRAFT",
-        "dpr_pdf_url": None
-    }
-    proposal = crud.create_proposal(db, proposal_data)
+    # Find existing DRAFT proposal or create a new row
+    from app.db.models import EnterpriseProposal
+    proposal = (
+        db.query(EnterpriseProposal)
+        .filter(EnterpriseProposal.beneficiary_id == beneficiary.id)
+        .order_by(EnterpriseProposal.created_at.desc())
+        .first()
+    )
+    if proposal and proposal.status == "DRAFT":
+        proposal.business_trade = trade
+        proposal.scheme_tier = fin["scheme"]
+        proposal.project_cost = fin["cost"]
+        proposal.sanctioned_loan = fin["loan"]
+        proposal.beneficiary_margin = fin["margin"]
+        proposal.monthly_emi = fin["emi"]
+        proposal.projected_dscr = cashflows.get("dscr", 1.65)
+        db.commit()
+    else:
+        proposal_data = {
+            "beneficiary_id": beneficiary.id,
+            "business_trade": trade,
+            "scheme_tier": fin["scheme"],
+            "project_cost": fin["cost"],
+            "sanctioned_loan": fin["loan"],
+            "beneficiary_margin": fin["margin"],
+            "monthly_emi": fin["emi"],
+            "projected_dscr": cashflows.get("dscr", 1.65),
+            "status": "DRAFT",
+            "dpr_pdf_url": None
+        }
+        proposal = crud.create_proposal(db, proposal_data)
 
     contact_id = beneficiary.telegram_chat_id if getattr(beneficiary, "primary_channel", "") == "telegram" else beneficiary.whatsapp_number
 

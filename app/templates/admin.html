@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rural Enterprise AI Advisory | State Channelizing Agency Admin Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0d5c3a;
+      --primary-dark: #083c25;
+      --primary-light: #e8f5e9;
+      --secondary: #d97706;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --warning: #ca8a04;
+      --warning-bg: #fef9c3;
+      --danger: #dc2626;
+      --danger-bg: #fee2e2;
+      --blue: #2563eb;
+      --blue-bg: #dbeafe;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: #ffffff;
+      padding: 24px 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-title h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-title p {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-live {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid #22c55e;
+      color: #4ade80;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-live::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .btn-refresh {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-refresh:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 28px auto 0;
+      padding: 0 24px;
+    }
+
+    /* KPI Cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .search-input {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      width: 280px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    /* Applications Grid */
+    .applications-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .app-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .app-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    .applicant-info h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .applicant-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-badge {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 6px;
+    }
+
+    .status-DRAFT {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid #fef08a;
+    }
+
+    .status-SANCTIONED {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-REJECTED {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #fecaca;
+    }
+
+    .status-REVISIT {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid #bfdbfe;
+    }
+
+    /* Card Body */
+    .app-body {
+      display: grid;
+      grid-template-columns: 1.1fr 1.3fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .app-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+    }
+
+    .trade-box {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+    }
+
+    .trade-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    .trade-cost {
+      font-size: 14px;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    .trade-cost span {
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    /* Financial Breakdown Table */
+    .fin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .fin-table td {
+      padding: 6px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .fin-table td:last-child {
+      text-align: right;
+      font-weight: 600;
+    }
+
+    /* Scheme Cards */
+    .schemes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .scheme-chip {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .scheme-chip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .scheme-chip-name {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--primary-dark);
+    }
+
+    .scheme-chip-rate {
+      font-size: 11px;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .scheme-chip-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Actions Footer */
+    .app-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    .btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+    }
+
+    .btn-sanction {
+      background: #16a34a;
+      color: #ffffff;
+    }
+
+    .btn-sanction:hover {
+      background: #15803d;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      background: #f8fafc;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .form-control {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .geo-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .btn-geo {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      height: 40px;
+    }
+
+    .modal-footer {
+      padding: 18px 24px;
+      border-top: 1px solid var(--border);
+      background: #f8fafc;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .empty-state {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 60px 20px;
+      text-align: center;
+      border: 1px dashed var(--border);
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast.active {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="header-title">
+        <h1>🌾 Rural Micro-Enterprise AI Advisory</h1>
+        <p>State Channelizing Agency (SCA) • Central Loan Appraisal & Sanction Console</p>
+      </div>
+      <div class="header-actions">
+        <span class="badge-live">Live Channel Active</span>
+        <button class="btn-refresh" onclick="loadProposals()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Refresh Data
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Key Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">Total Applicant Pipeline</span>
+        <span class="metric-value" id="kpi-total">0</span>
+        <span class="metric-sub">Entrepreneurs engaged via Telegram</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Pending Loan Reviews</span>
+        <span class="metric-value" id="kpi-pending" style="color: var(--warning);">0</span>
+        <span class="metric-sub">Awaiting field officer concurrence</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Sanctioned Enterprises</span>
+        <span class="metric-value" id="kpi-sanctioned" style="color: var(--success);">0</span>
+        <span class="metric-sub">Formally sanctioned loans</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Total Sanctioned Capital</span>
+        <span class="metric-value" id="kpi-capital">₹0</span>
+        <span class="metric-sub">Disbursement ready credit</span>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <button class="filter-btn active" data-status="ALL" onclick="filterStatus('ALL')">All Applications</button>
+        <button class="filter-btn" data-status="DRAFT" onclick="filterStatus('DRAFT')">Pending Review</button>
+        <button class="filter-btn" data-status="SANCTIONED" onclick="filterStatus('SANCTIONED')">Sanctioned</button>
+        <button class="filter-btn" data-status="REVISIT" onclick="filterStatus('REVISIT')">Revisit</button>
+        <button class="filter-btn" data-status="REJECTED" onclick="filterStatus('REJECTED')">Rejected</button>
+      </div>
+      <div>
+        <input type="text" id="search-box" class="search-input" placeholder="🔍 Search applicant, trade, district..." oninput="handleSearch()">
+      </div>
+    </div>
+
+    <!-- Applications Container -->
+    <div id="applications-container" class="applications-list">
+      <div class="empty-state">
+        <h3>Loading applications...</h3>
+        <p>Connecting to database...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sanction / Verification Modal -->
+  <div class="modal-backdrop" id="sanction-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title">⚡ Field Verification & Loan Sanction</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modal-proposal-id">
+        
+        <div class="form-group">
+          <label>Field Officer ID</label>
+          <input type="text" id="modal-officer-id" class="form-control" value="SCA-OFFICER-KA-09">
+        </div>
+
+        <div class="form-group">
+          <label>Geo-Verification Coordinates (GPS)</label>
+          <div class="geo-row">
+            <div>
+              <input type="number" step="0.000001" id="modal-lat" class="form-control" placeholder="Latitude" value="15.849700">
+            </div>
+            <div>
+              <input type="number" step="0.000001" id="modal-lon" class="form-control" placeholder="Longitude" value="74.497700">
+            </div>
+            <button type="button" class="btn-geo" onclick="detectGPS()">📍 Get GPS</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+          <input type="checkbox" id="modal-margin-verified" checked style="width: 18px; height: 18px; cursor: pointer;">
+          <label for="modal-margin-verified" style="cursor: pointer; margin-bottom: 0;">Beneficiary Margin Money (Down Payment) Verified in Bank Passbook / Cash</label>
+        </div>
+
+        <div class="form-group">
+          <label>Action / Recommendation</label>
+          <select id="modal-recommendation" class="form-control">
+            <option value="APPROVE">APPROVE & SANCTION (Dispatches Sanction Letter)</option>
+            <option value="REVISIT">REQUEST REVISIT (Needs corrections)</option>
+            <option value="REJECT">REJECT PROPOSAL</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Field Officer Inspection Remarks</label>
+          <textarea id="modal-remarks" class="form-control" rows="3">Enterprise premises inspected. Promoter viable with proven experience. Margin money verified.</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-sanction" id="btn-submit-sanction" onclick="submitSanction()">Submit Decision & Notify</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast-notification"></div>
+
+  <script>
+    let allProposals = [];
+    let currentFilter = 'ALL';
+
+    async function loadProposals() {
+      try {
+        const res = await fetch('/internal/proposals');
+        if (!res.ok) throw new Error("Failed to load proposals");
+        allProposals = await res.json();
+        updateKPIs();
+        renderProposals();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('applications-container').innerHTML = `
+          <div class="empty-state">
+            <h3 style="color: var(--danger);">Error loading proposals</h3>
+            <p>${err.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function updateKPIs() {
+      const total = allProposals.length;
+      const pending = allProposals.filter(p => p.status === 'DRAFT').length;
+      const sanctioned = allProposals.filter(p => p.status === 'SANCTIONED').length;
+      const capital = allProposals
+        .filter(p => p.status === 'SANCTIONED')
+        .reduce((sum, p) => sum + (parseFloat(p.sanctioned_loan) || 0), 0);
+
+      document.getElementById('kpi-total').innerText = total;
+      document.getElementById('kpi-pending').innerText = pending;
+      document.getElementById('kpi-sanctioned').innerText = sanctioned;
+      document.getElementById('kpi-capital').innerText = '₹' + capital.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
+
+    function filterStatus(status) {
+      currentFilter = status;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-status') === status);
+      });
+      renderProposals();
+    }
+
+    function handleSearch() {
+      renderProposals();
+    }
+
+    function renderProposals() {
+      const query = document.getElementById('search-box').value.toLowerCase().trim();
+      let filtered = allProposals;
+
+      if (currentFilter !== 'ALL') {
+        filtered = filtered.filter(p => p.status === currentFilter);
+      }
+
+      if (query) {
+        filtered = filtered.filter(p => 
+          (p.beneficiary_name && p.beneficiary_name.toLowerCase().includes(query)) ||
+          (p.business_trade && p.business_trade.toLowerCase().includes(query)) ||
+          (p.district && p.district.toLowerCase().includes(query)) ||
+          (p.telegram_chat_id && String(p.telegram_chat_id).includes(query)) ||
+          (p.whatsapp_number && String(p.whatsapp_number).toLowerCase().includes(query))
+        );
+      }
+
+      const container = document.getElementById('applications-container');
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <h3>No applications found</h3>
+            <p>No rural enterprise proposals match the current filter or search criteria.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(p => {
+        const schemes = p.recommended_schemes || [];
+        const schemesHtml = schemes.length ? schemes.map(s => `
+          <div class="scheme-chip">
+            <div class="scheme-chip-header">
+              <span class="scheme-chip-name">${s.name || s.type}</span>
+              <span class="scheme-chip-rate">${s.interest_rate || 'Concessional'}</span>
+            </div>
+            <div class="scheme-chip-desc">${s.highlights || ''}</div>
+          </div>
+        `).join('') : `
+          <div class="scheme-chip">
+            <div class="scheme-chip-header">
+              <span class="scheme-chip-name">${p.scheme_tier === 'MICRO_FINANCE' ? 'SCA Micro Finance Scheme (MFS)' : 'SCA Term Loan Scheme (TLS)'}</span>
+              <span class="scheme-chip-rate">6.5% - 8.0% p.a.</span>
+            </div>
+            <div class="scheme-chip-desc">Direct subsidized state channel loan with 90% capital coverage.</div>
+          </div>
+        `;
+
+        const dprBtn = p.dpr_pdf_url ? `
+          <a href="${p.dpr_pdf_url}" target="_blank" class="btn btn-outline">
+            📄 Open Bank DPR (PDF)
+          </a>
+        ` : `
+          <span style="font-size: 12px; color: var(--text-muted);">DPR PDF pending generation</span>
+        `;
+
+        const contactLabel = p.primary_channel === 'telegram' ? `Telegram ID: ${p.telegram_chat_id || 'N/A'}` : `WhatsApp: ${p.whatsapp_number || 'N/A'}`;
+
+        return `
+          <div class="app-card">
+            <div class="app-header">
+              <div class="applicant-info">
+                <h2>
+                  <span>${p.beneficiary_name || 'Rural Entrepreneur'}</span>
+                </h2>
+                <div class="applicant-meta">
+                  <span class="meta-item">📱 ${contactLabel}</span>
+                  <span class="meta-item">📍 ${p.district || 'Rural Dist'}, ${p.state || 'Karnataka'}</span>
+                  <span class="meta-item">🌐 Lang: ${(p.preferred_language || 'kannada').toUpperCase()}</span>
+                  <span class="meta-item">📅 ${p.created_at ? new Date(p.created_at).toLocaleDateString('en-IN') : 'Recent'}</span>
+                </div>
+              </div>
+              <div>
+                <span class="status-badge status-${p.status}">${p.status}</span>
+              </div>
+            </div>
+
+            <div class="app-body">
+              <!-- Enterprise Planned -->
+              <div>
+                <div class="section-title">Target Enterprise</div>
+                <div class="trade-box">
+                  <div class="trade-name">${p.business_trade}</div>
+                  <div class="trade-cost">Total Project Outlay: <span>₹${(p.project_cost || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span></div>
+                  <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Classification: <b>${p.scheme_tier}</b></div>
+                </div>
+              </div>
+
+              <!-- Recommended Schemes -->
+              <div>
+                <div class="section-title">Recommended Schemes & Subsidies</div>
+                <div class="schemes-list">
+                  ${schemesHtml}
+                </div>
+              </div>
+
+              <!-- Financial Appraisal -->
+              <div>
+                <div class="section-title">Financial Structuring</div>
+                <table class="fin-table">
+                  <tr>
+                    <td>Sanctioned Loan</td>
+                    <td>₹${(p.sanctioned_loan || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                  </tr>
+                  <tr>
+                    <td>Beneficiary Margin</td>
+                    <td>₹${(p.beneficiary_margin || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                  </tr>
+                  <tr>
+                    <td>Monthly EMI</td>
+                    <td>₹${(p.monthly_emi || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                  </tr>
+                  <tr>
+                    <td>Projected DSCR</td>
+                    <td style="color: ${p.projected_dscr >= 1.5 ? 'var(--success)' : 'var(--warning)'};">${p.projected_dscr || '1.75'}</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+
+            <div class="app-footer">
+              <div>
+                ${dprBtn}
+              </div>
+              <div>
+                <button class="btn btn-sanction" onclick="openSanctionModal('${p.id}', '${p.beneficiary_name || 'Entrepreneur'}', '${p.business_trade}')">
+                  ⚡ Review & Sanction Loan
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openSanctionModal(proposalId, name, trade) {
+      document.getElementById('modal-proposal-id').value = proposalId;
+      document.getElementById('modal-title').innerText = `⚡ Sanction Appraisal: ${name} (${trade})`;
+      document.getElementById('sanction-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('sanction-modal').classList.remove('active');
+    }
+
+    function detectGPS() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            document.getElementById('modal-lat').value = pos.coords.latitude.toFixed(6);
+            document.getElementById('modal-lon').value = pos.coords.longitude.toFixed(6);
+            showToast("📍 Real device GPS coordinates captured!");
+          },
+          err => {
+            showToast("⚠️ Could not get device location: " + err.message);
+          }
+        );
+      } else {
+        showToast("⚠️ Geolocation is not supported by your browser");
+      }
+    }
+
+    async function submitSanction() {
+      const proposalId = document.getElementById('modal-proposal-id').value;
+      const officerId = document.getElementById('modal-officer-id').value;
+      const lat = parseFloat(document.getElementById('modal-lat').value) || 15.8497;
+      const lon = parseFloat(document.getElementById('modal-lon').value) || 74.4977;
+      const marginVerified = document.getElementById('modal-margin-verified').checked;
+      const recommendation = document.getElementById('modal-recommendation').value;
+      const remarks = document.getElementById('modal-remarks').value;
+
+      const btn = document.getElementById('btn-submit-sanction');
+      btn.disabled = true;
+      btn.innerText = "Submitting...";
+
+      try {
+        const res = await fetch(`/internal/sanction/${proposalId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            field_officer_id: officerId,
+            geo_latitude: lat,
+            geo_longitude: lon,
+            margin_money_verified: marginVerified,
+            recommendation: recommendation,
+            remarks: remarks
+          })
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        closeModal();
+        showToast(`✅ Proposal successfully updated to ${data.new_status}! Telegram notification dispatched.`);
+        loadProposals();
+      } catch (err) {
+        alert("Failed to submit sanction: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Submit Decision & Notify";
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast-notification');
+      t.innerText = msg;
+      t.classList.add('active');
+      setTimeout(() => t.classList.remove('active'), 4000);
+    }
+
+    // Initial Load
+    loadProposals();
+  </script>
+</body>
+</html>
