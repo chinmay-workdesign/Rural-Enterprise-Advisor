@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Detailed Project Report - {{ proposal.business_trade }}</title>
+<style>
+    @page {
+        size: A4;
+        margin: 20mm 15mm 20mm 15mm;
+        @bottom-right {
+            content: "Page " counter(page) " of " counter(pages);
+            font-size: 9pt;
+            color: #718096;
+        }
+    }
+    body {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: #1a202c;
+        line-height: 1.5;
+        font-size: 11pt;
+        margin: 0;
+        padding: 0;
+    }
+    .header {
+        text-align: center;
+        border-bottom: 3px solid #1a365d;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+    .emblem-title {
+        font-size: 18pt;
+        font-weight: 700;
+        color: #1a365d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+    .sub-title {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #2b6cb0;
+        margin: 4px 0 0 0;
+    }
+    .doc-badge {
+        display: inline-block;
+        background-color: #2b6cb0;
+        color: white;
+        padding: 4px 14px;
+        border-radius: 4px;
+        font-size: 10pt;
+        font-weight: bold;
+        margin-top: 8px;
+    }
+    .meta-bar {
+        background-color: #ebf8ff;
+        border-left: 4px solid #3182ce;
+        padding: 8px 14px;
+        margin-bottom: 20px;
+        font-size: 9.5pt;
+        display: flex;
+        justify-content: space-between;
+    }
+    h2 {
+        font-size: 12pt;
+        color: #2c5282;
+        border-bottom: 1.5px solid #cbd5e0;
+        padding-bottom: 4px;
+        margin-top: 18px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 14px;
+    }
+    th, td {
+        border: 1px solid #e2e8f0;
+        padding: 6px 10px;
+        text-align: left;
+        font-size: 10pt;
+    }
+    th {
+        background-color: #edf2f7;
+        color: #2d3748;
+        font-weight: 600;
+    }
+    .highlight-row {
+        background-color: #feebc8;
+        font-weight: bold;
+    }
+    .total-row {
+        background-color: #e2e8f0;
+        font-weight: bold;
+    }
+    .status-sanctioned {
+        color: #22543d;
+        background-color: #c6f6d5;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-weight: bold;
+    }
+    .status-draft {
+        color: #744210;
+        background-color: #fefcbf;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-weight: bold;
+    }
+    .verification-box {
+        border: 2px dashed #4a5568;
+        border-radius: 6px;
+        padding: 12px;
+        margin-top: 25px;
+        background-color: #f7fafc;
+    }
+    .signatures {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .sig-col {
+        width: 45%;
+        text-align: center;
+        border-top: 1px solid #718096;
+        padding-top: 6px;
+        font-size: 10pt;
+    }
+    .notice {
+        font-size: 8.5pt;
+        color: #718096;
+        margin-top: 20px;
+        text-align: justify;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="emblem-title">State Channelizing Agency (SCA)</div>
+    <div class="sub-title">Department of Backward Classes & Minorities Welfare / NBCFDC</div>
+    <div class="doc-badge">DETAILED PROJECT REPORT (DPR) FOR BANK CONCURRENCE</div>
+</div>
+
+<div class="meta-bar">
+    <span><strong>DPR Ref No:</strong> DPR-{{ proposal.id[:8] | upper }}</span>
+    <span><strong>Date:</strong> {{ date_str }}</span>
+    <span><strong>Scheme Tier:</strong> {{ proposal.scheme_tier }}</span>
+</div>
+
+<h2>1. Beneficiary Profile</h2>
+<table>
+    <tr>
+        <th width="30%">Beneficiary Name</th>
+        <td>{{ beneficiary.full_name or 'Rural Entrepreneur' }}</td>
+        <th width="25%">WhatsApp Contact</th>
+        <td>{{ beneficiary.whatsapp_number }}</td>
+    </tr>
+    <tr>
+        <th>Location / Village / Block</th>
+        <td>{{ beneficiary.district }}, {{ beneficiary.state or 'Karnataka' }}</td>
+        <th>Preferred Language</th>
+        <td>{{ beneficiary.preferred_language | capitalize }}</td>
+    </tr>
+    <tr>
+        <th>Annual Family Income</th>
+        <td>₹{{ "%.2f"|format(beneficiary.annual_family_income or 65000.0) }}</td>
+        <th>Application Status</th>
+        <td>
+            {% if proposal.status == 'SANCTIONED' %}
+                <span class="status-sanctioned">SANCTIONED</span>
+            {% else %}
+                <span class="status-draft">DRAFT (SCA VERIFICATION PENDING)</span>
+            {% endif %}
+        </td>
+    </tr>
+</table>
+
+<h2>2. Proposed Enterprise & Capital Outlay</h2>
+<table>
+    <tr>
+        <th width="30%">Target Business Trade</th>
+        <td colspan="3"><strong>{{ proposal.business_trade }}</strong></td>
+    </tr>
+    <tr>
+        <th>Classification Scheme</th>
+        <td colspan="3">
+            {% if proposal.scheme_tier == 'MICRO_FINANCE' %}
+                Tier 1: Micro Finance Scheme (MFS) - Up to ₹1,40,000 Outlay
+            {% else %}
+                Tier 2: Term Loan Scheme (TLS) - Above ₹1,40,000 Up to ₹50,00,000 Outlay
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <th>Asset Creation / Capex</th>
+        <td>₹{{ "%.2f"|format(proposal.project_cost * 0.70) }}</td>
+        <th>Working Capital Margin</th>
+        <td>₹{{ "%.2f"|format(proposal.project_cost * 0.30) }}</td>
+    </tr>
+    <tr class="total-row">
+        <th>Total Project Outlay</th>
+        <td colspan="3">₹{{ "%.2f"|format(proposal.project_cost) }}</td>
+    </tr>
+</table>
+
+<h2>3. Means of Finance & Financial Structuring (Deterministic Rules)</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Component</th>
+            <th>Statutory Norm</th>
+            <th>Amount (₹)</th>
+            <th>Percentage (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>SCA Agency Loan</strong></td>
+            <td>90% of Cost (MFS Cap: ₹1,25,000 / TLS Cap: ₹45,00,000)</td>
+            <td>₹{{ "%.2f"|format(proposal.sanctioned_loan) }}</td>
+            <td>{{ "%.2f"|format((proposal.sanctioned_loan / proposal.project_cost) * 100) }}%</td>
+        </tr>
+        <tr class="highlight-row">
+            <td><strong>Beneficiary Margin Money</strong></td>
+            <td>Minimum 10% (Dynamic Absorption of Loan Cap)</td>
+            <td>₹{{ "%.2f"|format(proposal.beneficiary_margin) }}</td>
+            <td>{{ "%.2f"|format((proposal.beneficiary_margin / proposal.project_cost) * 100) }}%</td>
+        </tr>
+        <tr class="total-row">
+            <td colspan="2"><strong>Total Financing</strong></td>
+            <td>₹{{ "%.2f"|format(proposal.project_cost) }}</td>
+            <td>100.00%</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>4. Debt Servicing & Viability Analysis</h2>
+<table>
+    <tr>
+        <th width="30%">Annual Interest Rate</th>
+        <td>{{ "6.50% p.a. (Reducing Balance)" if proposal.scheme_tier == 'MICRO_FINANCE' else "8.00% p.a. (Reducing Balance)" }}</td>
+        <th width="25%">Total Tenure</th>
+        <td>{{ "36 Months" if proposal.scheme_tier == 'MICRO_FINANCE' else "84 Months" }}</td>
+    </tr>
+    <tr>
+        <th>Moratorium Period</th>
+        <td>{{ "3 Months" if proposal.scheme_tier == 'MICRO_FINANCE' else "6 Months" }}</td>
+        <th>Repayment Installments</th>
+        <td>{{ "33 Months" if proposal.scheme_tier == 'MICRO_FINANCE' else "78 Months" }}</td>
+    </tr>
+    <tr class="highlight-row">
+        <th>Monthly EMI</th>
+        <td><strong>₹{{ "%.2f"|format(proposal.monthly_emi) }}</strong></td>
+        <th>Projected DSCR</th>
+        <td><strong>{{ "%.2f"|format(proposal.projected_dscr) }}</strong> (Bankable Viability: &ge; 1.25)</td>
+    </tr>
+</table>
+
+<h2>5. NABARD Benchmark Grounding</h2>
+<table>
+    <tr>
+        <th width="30%">Benchmark Source</th>
+        <td>NABARD Model Bankable Project Guidelines & District Resource Profiles</td>
+    </tr>
+    <tr>
+        <th>District Viability</th>
+        <td>Grounded in unit costs for <strong>{{ beneficiary.district }}</strong> district agro-climatic zone.</td>
+    </tr>
+    <tr>
+        <th>Economic Feasibility</th>
+        <td>Projected operating cash flows provide sufficient headroom exceeding mandatory 1.25 DSCR debt coverage.</td>
+    </tr>
+</table>
+
+<div class="verification-box">
+    <strong>6. State Channelizing Agency (SCA) Field Verification</strong>
+    <p style="margin: 6px 0; font-size: 9.5pt;">
+        Field Officer Verification ID: ______________________ &nbsp;&nbsp;&nbsp;&nbsp;
+        GPS Coordinates: Lat: _____________, Long: _____________ (Accuracy: &plusmn;5m)<br>
+        Beneficiary Margin Money In-Hand Verified: [ &nbsp; ] YES &nbsp;&nbsp;&nbsp; [ &nbsp; ] NO<br>
+        Recommendation: [ &nbsp; ] RECOMMENDED FOR SANCTION &nbsp;&nbsp; [ &nbsp; ] REJECT &nbsp;&nbsp; [ &nbsp; ] REVISIT
+    </p>
+</div>
+
+<div class="signatures">
+    <div class="sig-col">
+        <strong>Beneficiary Signature / Thumb Impression</strong><br>
+        Date: {{ date_str }}
+    </div>
+    <div class="sig-col">
+        <strong>Authorized SCA Sanctioning Officer</strong><br>
+        Seal & Signature
+    </div>
+</div>
+
+<div class="notice">
+    <strong>Confidentiality & Compliance:</strong> This Detailed Project Report is generated automatically by the State Channelizing Agency's WhatsApp AI Advisory & Structuring System based on deterministic lending guidelines. Final disbursement is subject to physical geo-verification and submission of valid KYC credentials.
+</div>
+
+</body>
+</html>

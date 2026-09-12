@@ -1,0 +1,16 @@
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite
+*.db
+.pytest_cache/
+.venv/
+venv/
+ENV/
+dist/
+build/
+*.egg-info/
+.DS_Store
+Thumbs.db
+generated_dprs/
