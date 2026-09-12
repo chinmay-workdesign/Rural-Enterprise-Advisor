@@ -7,11 +7,12 @@ logger = logging.getLogger("gemini_client")
 
 # Active verified models on Google AI Studio
 VERIFIED_GEMINI_MODELS = [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
+    "gemini-flash-latest",
     "gemini-flash-lite-latest",
     "gemini-3.1-flash-lite",
-    "gemini-3.5-flash",
-    "gemini-2.5-flash",
 ]
 
 
@@ -146,11 +147,13 @@ def transcribe_audio_gemini(
     )
 
     AUDIO_MODELS = [
-        "gemini-2.5-flash",
-        "gemini-flash-latest",
-        "gemini-2.5-flash-lite",
+        "gemini-3.6-flash",
         "gemini-3.5-flash",
-        "gemini-3-flash-preview",
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-transcribe",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
+        "gemini-3.1-flash-lite",
     ]
 
     for model_name in AUDIO_MODELS:
