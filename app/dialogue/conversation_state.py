@@ -1,6 +1,8 @@
+import os
 import re
 import logging
 from typing import Dict, Any, Optional
+from app.config import settings
 from app.db.session import SessionLocal
 from app.db import crud
 from app.whatsapp.client import (
@@ -336,9 +338,31 @@ def _send_voice_audio_reply(beneficiary, text: str, lang: str):
     except Exception as e:
         logger.warning(f"Failed to send voice audio reply: {e}")
 
+_RECENT_TURNS = {}
+
+def _is_duplicate_turn(beneficiary_id: str, text: str, window_sec: float = 6.0) -> bool:
+    import time
+    key = f"{beneficiary_id}:{text.strip().upper()}"
+    now = time.time()
+    last_time = _RECENT_TURNS.get(key, 0.0)
+    if (now - last_time) < window_sec:
+        return True
+    _RECENT_TURNS[key] = now
+    if len(_RECENT_TURNS) > 200:
+        cutoff = now - 60.0
+        for k in list(_RECENT_TURNS.keys()):
+            if _RECENT_TURNS[k] < cutoff:
+                del _RECENT_TURNS[k]
+    return False
+
 def _handle_user_turn(db, beneficiary, user_text: str, from_voice: bool = False):
     """Shared state machine for both Telegram and WhatsApp channels."""
     text_clean = user_text.strip()
+    if not text_clean:
+        return
+    if _is_duplicate_turn(beneficiary.id, text_clean):
+        logger.warning(f"Ignoring duplicate turn for beneficiary {beneficiary.id[:8]}: '{text_clean}'")
+        return
     state = beneficiary.conversation_state or "LANGUAGE_SELECTION"
     context = beneficiary.conversation_context or {}
 
@@ -1000,6 +1024,9 @@ def _handle_dpr_generation(db, beneficiary, context: Dict[str, Any]):
     db.commit()
 
     channel_name = "Telegram" if getattr(beneficiary, "primary_channel", "") == "telegram" else "WhatsApp"
+
+    base_url = (os.environ.get("RENDER_EXTERNAL_URL") or settings.BACKEND_INTERNAL_URL or "").rstrip("/")
+    online_url = f"{base_url}/dpr/{str(proposal.id)}" if base_url else f"/dpr/{str(proposal.id)}"
 
     # Multilingual caption and delivery confirmation
     if lang == "kannada":

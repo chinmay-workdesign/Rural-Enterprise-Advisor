@@ -859,17 +859,15 @@
           </div>
         `;
 
-        let cleanPdfUrl = p.dpr_pdf_url || '';
-        if (cleanPdfUrl && cleanPdfUrl.includes('/static/dprs/')) {
-          cleanPdfUrl = '/static/dprs/' + cleanPdfUrl.split('/static/dprs/').pop();
+        let dprLink = `/dpr/${p.id}`;
+        if (p.dpr_pdf_url && p.dpr_pdf_url.includes('/static/dprs/')) {
+          dprLink = '/static/dprs/' + p.dpr_pdf_url.split('/static/dprs/').pop();
         }
 
-        const dprBtn = cleanPdfUrl ? `
-          <a href="${cleanPdfUrl}" target="_blank" class="btn btn-outline">
+        const dprBtn = `
+          <a href="${dprLink}" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
             📄 Open Bank DPR (PDF)
           </a>
-        ` : `
-          <span style="font-size: 12px; color: var(--text-muted);">DPR PDF pending generation</span>
         `;
 
         const contactLabel = p.primary_channel === 'telegram' ? `Telegram ID: ${p.telegram_chat_id || 'N/A'}` : `WhatsApp: ${p.whatsapp_number || 'N/A'}`;
