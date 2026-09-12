@@ -477,27 +477,17 @@ def _handle_user_turn(db, beneficiary, user_text: str, from_voice: bool = False)
                 if latest_prop and latest_prop.project_cost:
                     project_cost = float(latest_prop.project_cost)
                 else:
-                    t_low = trade.lower()
-                    if any(k in t_low for k in ["fertilizer", "pesticide", "poultry"]):
-                        project_cost = 250000.0
-                    elif any(k in t_low for k in ["dairy", "cattle", "cow"]):
-                        project_cost = 140000.0
-                    elif any(k in t_low for k in ["tailor", "garment"]):
-                        project_cost = 120000.0
-                    elif any(k in t_low for k in ["fish", "fishery"]):
-                        project_cost = 250000.0
-                    else:
-                        project_cost = 150000.0
+                    project_cost = 100000.0
 
             fin_result = calculate_financial_structure(project_cost)
             cashflows = project_financial_cashflows(project_cost, fin_result["emi"])
-            benchmarks = search_trade_benchmarks(trade, district, limit=2)
-            dscr_bench = float(benchmarks[0].get("dscr", 1.75)) if benchmarks else 1.75
+            benchmark = get_trade_benchmark(trade, district)
+            dscr_bench = float(benchmark.get("dscr", 1.75))
             cashflows["dscr"] = dscr_bench
 
             from app.finance.multi_schemes import get_all_eligible_schemes
             multi_schemes = get_all_eligible_schemes(cost=project_cost, trade=trade, district=district, state=state)
-            nabard_summary = f"Grounded in NABARD {trade} benchmark in {district}."
+            nabard_summary = benchmark.get("summary", f"Grounded in standard rural lending norms in {district}.")
 
             context.update({
                 "trade": trade,
@@ -598,22 +588,41 @@ def _handle_user_turn(db, beneficiary, user_text: str, from_voice: bool = False)
             _send_voice_audio_reply(beneficiary, msg, lang)
         return
 
-    # 3. Conversational follow-ups when advisory has already been generated
-    if state == "CONFIRM_DPR":
+    # 3. Conversational follow-ups when advisory has already been generated or submitted
+    if state in ["CONFIRM_DPR", "SUBMITTED"]:
         extracted = extract_entrepreneur_details(text_clean)
-        has_new_details = bool(extracted.get("trade") or extracted.get("project_cost"))
-        if has_new_details:
+        new_trade = extracted.get("trade")
+        curr_trade = context.get("trade", "")
+        # If user proposes a different trade, reset old context so it doesn't hallucinate previous venture details
+        is_new_venture = bool(new_trade and new_trade.lower() != curr_trade.lower())
+        has_new_cost = bool(extracted.get("project_cost") and extracted.get("project_cost") != context.get("project_cost"))
+
+        if is_new_venture:
+            context = {
+                "trade": new_trade,
+                "district": extracted.get("district") or context.get("district"),
+                "state": extracted.get("state") or context.get("state"),
+                "project_cost": extracted.get("project_cost"),
+                "available_capital": extracted.get("available_capital")
+            }
+            beneficiary.conversation_context = context
+            beneficiary.conversation_state = "COLLECTING"
+            db.commit()
+            _handle_extraction_and_advisory(db, beneficiary, text_clean, context, from_voice=from_voice)
+            return
+        elif has_new_cost:
             _handle_extraction_and_advisory(db, beneficiary, text_clean, context, from_voice=from_voice)
             return
 
         trade = context.get("trade", "your enterprise")
         district = context.get("district", "your district")
-        cost = context.get("project_cost", 120000.0)
+        cost = context.get("project_cost")
+        cost_str = f"with outlay ₹{cost:,.2f}" if cost else ""
 
         follow_up_prompt = (
-            f"You are a helpful Rural Enterprise Lending Advisor. The entrepreneur has already received a proposal for their "
-            f"{trade} in {district} with outlay ₹{cost:,.2f}. "
-            f"Answer their message concisely and politely in {lang}. "
+            f"You are a helpful Rural Enterprise Lending Advisor. The entrepreneur has received advisory for their "
+            f"{trade} in {district} {cost_str}. "
+            f"Answer their message concisely, politely, and strictly in {lang} language. "
             f"At the end, remind them: 'Reply GENERATE DPR whenever you are ready to download your official bank report PDF.'"
         )
         try:
@@ -760,12 +769,12 @@ def _handle_extraction_and_advisory(db, beneficiary, text: str, context: Dict[st
     extracted = extract_entrepreneur_details(text)
     logger.info(f"Extracted parameters: {extracted}")
 
-    # 1. Update preferred language if specified or detected
+    # 1. Update preferred language ONLY if an explicit regional script is detected or user had none
     detected_lang = detect_message_language(text)
-    if detected_lang:
+    if detected_lang and detected_lang != "english":
         beneficiary.preferred_language = detected_lang
-    elif extracted.get("language") and extracted.get("language") in ["kannada", "hindi", "telugu", "marathi", "tamil", "english"]:
-        beneficiary.preferred_language = extracted["language"]
+    elif not beneficiary.preferred_language:
+        beneficiary.preferred_language = detected_lang or "kannada"
 
     lang = beneficiary.preferred_language or "kannada"
 

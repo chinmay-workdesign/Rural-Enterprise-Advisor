@@ -124,12 +124,12 @@ def fallback_regex_extractor(text: str) -> Dict[str, Any]:
     elif "solapur" in lower_t or "सोलापूर" in text:
         district, state = "Solapur", "Maharashtra"
 
-    # Language detection
+    # Language detection (returns None if no clear script detected, preserving user's chosen language)
     try:
         from app.dialogue.conversation_state import detect_message_language
-        lang = detect_message_language(text) or "english"
+        lang = detect_message_language(text)
     except Exception:
-        lang = "english"
+        lang = None
 
     return {
         "trade": trade,
