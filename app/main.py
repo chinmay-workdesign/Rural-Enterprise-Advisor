@@ -114,6 +114,13 @@ def list_proposals(
         b = p.beneficiary
         ctx = (b.conversation_context or {}) if b else {}
         multi = ctx.get("multi_schemes", {}) if isinstance(ctx, dict) else {}
+
+        # Normalize DPR PDF URL to relative path so it seamlessly opens in any browser/domain
+        pdf_url = p.dpr_pdf_url
+        if pdf_url and "/static/dprs/" in pdf_url:
+            filename = pdf_url.split("/static/dprs/")[-1]
+            pdf_url = f"/static/dprs/{filename}"
+
         results.append({
             "id": p.id,
             "beneficiary_id": p.beneficiary_id,
@@ -133,7 +140,7 @@ def list_proposals(
             "monthly_emi": float(p.monthly_emi),
             "projected_dscr": float(p.projected_dscr),
             "status": p.status,
-            "dpr_pdf_url": p.dpr_pdf_url,
+            "dpr_pdf_url": pdf_url,
             "created_at": p.created_at.isoformat() if p.created_at else None,
             "recommended_schemes": multi.get("schemes", []),
             "capital_advice": multi.get("capital_advice", ""),

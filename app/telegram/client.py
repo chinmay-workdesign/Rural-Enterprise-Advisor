@@ -115,7 +115,21 @@ def send_telegram_document(
     url = f"{_get_bot_url()}/sendDocument"
 
     try:
-        # If document is a URL string
+        # If document points to a local static DPR file, read bytes directly from disk
+        if isinstance(document, str):
+            clean_name = None
+            if "/static/dprs/" in document:
+                clean_name = document.split("/static/dprs/")[-1]
+            elif document.endswith(".pdf") and os.path.exists(document):
+                clean_name = os.path.basename(document)
+
+            if clean_name:
+                local_path = os.path.join(os.getcwd(), "static", "dprs", clean_name)
+                if os.path.exists(local_path):
+                    with open(local_path, "rb") as f:
+                        document = f.read()
+
+        # If document is a remote HTTP URL string
         if isinstance(document, str) and (document.startswith("http://") or document.startswith("https://")):
             payload = {
                 "chat_id": str(chat_id),
@@ -124,6 +138,7 @@ def send_telegram_document(
             }
             response = requests.post(url, json=payload, timeout=20)
             if response.status_code == 200:
+                logger.info(f"Sent Telegram document ({filename}) to {chat_id}")
                 return response.json()
             # If Telegram couldn't fetch remote URL directly, download and stream
             doc_resp = requests.get(document, timeout=15)
@@ -136,6 +151,7 @@ def send_telegram_document(
             data = {"chat_id": str(chat_id), "caption": caption}
             response = requests.post(url, data=data, files=files, timeout=30)
             response.raise_for_status()
+            logger.info(f"Sent Telegram document ({filename}) to {chat_id}")
             return response.json()
 
         return {"error": "Invalid document type", "success": False}

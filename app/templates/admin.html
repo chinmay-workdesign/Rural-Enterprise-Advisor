@@ -859,8 +859,13 @@
           </div>
         `;
 
-        const dprBtn = p.dpr_pdf_url ? `
-          <a href="${p.dpr_pdf_url}" target="_blank" class="btn btn-outline">
+        let cleanPdfUrl = p.dpr_pdf_url || '';
+        if (cleanPdfUrl && cleanPdfUrl.includes('/static/dprs/')) {
+          cleanPdfUrl = '/static/dprs/' + cleanPdfUrl.split('/static/dprs/').pop();
+        }
+
+        const dprBtn = cleanPdfUrl ? `
+          <a href="${cleanPdfUrl}" target="_blank" class="btn btn-outline">
             📄 Open Bank DPR (PDF)
           </a>
         ` : `
