@@ -56,8 +56,6 @@ def extract_entrepreneur_details(user_text: str) -> Dict[str, Any]:
                 clean_json = re.sub(r"^```(?:json)?", "", clean_json)
                 clean_json = re.sub(r"```$", "", clean_json).strip()
             data = json.loads(clean_json)
-            if not any(data.get(k) for k in ["trade", "district", "project_cost"]):
-                return fallback_regex_extractor(user_text)
             return data
     except Exception as e:
         logger.warning(f"LLM extraction failed or returned invalid JSON ({e}). Using regex heuristics.")

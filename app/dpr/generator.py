@@ -438,9 +438,7 @@ def generate_dpr_pdf(
         logger.info(f"Rendered DPR PDF via ReportLab ({len(pdf_bytes)} bytes)")
 
     if output_path:
-        out_dir = os.path.dirname(output_path)
-        if out_dir:
-            os.makedirs(out_dir, exist_ok=True)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
         with open(output_path, "wb") as f:
             f.write(pdf_bytes)
         logger.info(f"Saved DPR PDF to: {output_path}")

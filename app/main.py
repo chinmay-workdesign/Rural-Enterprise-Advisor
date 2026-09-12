@@ -3,7 +3,7 @@ import logging
 import threading
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse, Response, FileResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -59,90 +59,6 @@ app.add_middleware(
 static_dir = os.path.join(os.getcwd(), "static", "dprs")
 os.makedirs(static_dir, exist_ok=True)
 app.mount("/static/dprs", StaticFiles(directory=static_dir), name="static_dprs")
-
-def _generate_and_stream_dpr(proposal, db: Session, target_filename: Optional[str] = None):
-    """Compile and stream DPR PDF directly with inline preview headers."""
-    b = proposal.beneficiary
-    proposal_dict = {
-        "id": proposal.id,
-        "business_trade": proposal.business_trade,
-        "scheme_tier": proposal.scheme_tier,
-        "project_cost": float(proposal.project_cost),
-        "sanctioned_loan": float(proposal.sanctioned_loan),
-        "beneficiary_margin": float(proposal.beneficiary_margin),
-        "monthly_emi": float(proposal.monthly_emi),
-        "projected_dscr": float(proposal.projected_dscr),
-        "status": proposal.status
-    }
-    beneficiary_dict = {
-        "id": b.id if b else "unknown",
-        "full_name": b.full_name if b else "Rural Entrepreneur",
-        "whatsapp_number": b.whatsapp_number if b else "",
-        "district": (b.district if b else None) or "Belagavi",
-        "state": (b.state if b else None) or "Karnataka",
-        "preferred_language": (b.preferred_language if b else None) or "kannada",
-        "annual_family_income": float(b.annual_family_income) if (b and b.annual_family_income) else 65000.0
-    }
-    from app.dpr.generator import generate_dpr_pdf
-    trade = (proposal.business_trade or "Rural Enterprise").replace(" ", "_")
-    filename = target_filename or f"DPR_{trade}_{str(proposal.id)[:8]}.pdf"
-    local_path = os.path.join(os.getcwd(), "static", "dprs", filename)
-    pdf_bytes = generate_dpr_pdf(proposal_dict, beneficiary_dict, output_path=local_path)
-
-    return Response(
-        content=pdf_bytes,
-        media_type="application/pdf",
-        headers={
-            "Content-Disposition": f"inline; filename={filename}",
-            "Content-Type": "application/pdf"
-        }
-    )
-
-@app.get("/dpr/{proposal_id}")
-def view_dpr_by_proposal_id(proposal_id: str, db: Session = Depends(get_db)):
-    """Serve or dynamically regenerate DPR PDF for any proposal ID."""
-    proposal = crud.get_proposal_by_id(db, proposal_id)
-    if not proposal:
-        proposals = crud.get_proposals(db)
-        matched = [p for p in proposals if str(p.id).startswith(proposal_id) or str(p.id)[:8] == proposal_id[:8]]
-        if matched:
-            proposal = matched[0]
-    if not proposal:
-        raise HTTPException(status_code=404, detail="Proposal not found")
-
-    trade = (proposal.business_trade or "Rural Enterprise").replace(" ", "_")
-    filename = f"DPR_{trade}_{str(proposal.id)[:8]}.pdf"
-    local_path = os.path.join(os.getcwd(), "static", "dprs", filename)
-    if os.path.exists(local_path):
-        return FileResponse(
-            local_path,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"inline; filename={filename}"}
-        )
-    return _generate_and_stream_dpr(proposal, db, filename)
-
-@app.get("/static/dprs/{filename}")
-def serve_static_dpr(filename: str, db: Session = Depends(get_db)):
-    """Serve saved DPR from disk, or dynamically regenerate if missing from ephemeral container."""
-    local_path = os.path.join(os.getcwd(), "static", "dprs", filename)
-    if os.path.exists(local_path):
-        return FileResponse(
-            local_path,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"inline; filename={filename}"}
-        )
-
-    # If missing, parse proposal ID suffix (e.g. DPR_Trade_8c5f8d98.pdf)
-    clean = filename.replace(".pdf", "")
-    parts = clean.split("_")
-    if parts:
-        candidate_id = parts[-1]
-        proposals = crud.get_proposals(db)
-        matched = [p for p in proposals if str(p.id).startswith(candidate_id) or str(p.id)[:8] == candidate_id]
-        if matched:
-            return _generate_and_stream_dpr(matched[0], db, filename)
-
-    raise HTTPException(status_code=404, detail="DPR file not found")
 
 # Include WhatsApp and Telegram Webhook routers
 from app.whatsapp.webhook_handler import router as whatsapp_router
