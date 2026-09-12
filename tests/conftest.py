@@ -12,7 +12,6 @@ def setup_test_db():
          patch("app.dialogue.conversation_state.send_telegram_text", return_value={"mock": True, "status": "sent"}), \
          patch("app.dialogue.conversation_state.send_telegram_document", return_value={"mock": True, "status": "sent"}), \
          patch("app.dialogue.conversation_state.send_channel_voice", return_value=None), \
-         patch("app.dialogue.conversation_state.upload_dpr_pdf", return_value="https://test-r2.dev/sample.pdf"), \
-         patch("app.storage.r2_client.upload_dpr_pdf", return_value="https://test-r2.dev/sample.pdf"):
+         patch("app.dialogue.conversation_state.upload_dpr_pdf", return_value="http://localhost:8000/static/dprs/sample.pdf"), \
+         patch("app.storage.local_storage.save_dpr_pdf", return_value="http://localhost:8000/static/dprs/sample.pdf"):
         yield
-

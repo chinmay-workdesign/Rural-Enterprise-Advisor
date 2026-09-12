@@ -23,7 +23,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from app.config import settings
 from app.db.session import init_db
-from app.ai.rag.qdrant_client import init_qdrant_collection
 from app.dialogue.conversation_state import process_telegram_query, process_telegram_voice_query
 
 import socket
@@ -83,9 +82,8 @@ def poll_telegram_updates():
         print("="*70 + "\n")
         sys.exit(1)
 
-    # Initialize DB tables and vector collection
+    # Initialize DB tables
     init_db()
-    init_qdrant_collection()
 
     bot_url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}"
     

@@ -13,7 +13,6 @@ from app.db.session import engine, Base, get_db, init_db
 from app.db import crud, models
 from app.whatsapp.webhook_handler import router as whatsapp_router
 from app.whatsapp.client import send_whatsapp_text, send_whatsapp_document
-from app.ai.rag.qdrant_client import init_qdrant_collection
 
 # Logging configuration
 logging.basicConfig(
@@ -24,9 +23,8 @@ logger = logging.getLogger("rural_advisor_app")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Initializing database tables and vector collection...")
+    logger.info("Initializing database tables...")
     init_db()
-    init_qdrant_collection()
     yield
     logger.info("Shutting down Rural Advisor API...")
 

@@ -16,11 +16,11 @@ from app.telegram.client import (
 )
 from app.voice.voice_service import transcribe_audio, synthesize_speech
 from app.ai.extraction import extract_entrepreneur_details, generate_advisory_message
-from app.ai.rag.qdrant_client import search_trade_benchmarks
+from app.finance.benchmarks import get_trade_benchmark
 from app.finance.calculator import calculate_financial_structure, validate_project_cost
 from app.finance.dscr import project_financial_cashflows
 from app.dpr.generator import generate_dpr_pdf
-from app.storage.r2_client import upload_dpr_pdf
+from app.storage import save_dpr_pdf, upload_dpr_pdf
 
 logger = logging.getLogger("conversation_state")
 
@@ -827,14 +827,10 @@ def _handle_extraction_and_advisory(db, beneficiary, text: str, context: Dict[st
     # 1. Deterministic financial calculation (NEVER LLM)
     fin_result = calculate_financial_structure(project_cost)
 
-    # 2. Query NABARD Benchmarks via RAG
-    benchmarks = search_trade_benchmarks(trade, district, limit=2)
-    nabard_summary = ""
-    dscr_benchmark = 1.75
-    if benchmarks:
-        top_bench = benchmarks[0]
-        dscr_benchmark = float(top_bench.get("dscr", 1.75))
-        nabard_summary = f"Grounded in NABARD {top_bench.get('trade')} benchmark: typical capex ₹{top_bench.get('capex'):,.0f}, opex ₹{top_bench.get('opex'):,.0f}."
+    # 2. Query NABARD Trade Benchmarks (In-Memory Reference Data)
+    benchmark = get_trade_benchmark(trade, district)
+    dscr_benchmark = float(benchmark.get("dscr", 1.75))
+    nabard_summary = benchmark.get("summary", f"Grounded in standard rural lending norms in {district}.")
 
     # 3. Project cash flows & DSCR
     cashflows = project_financial_cashflows(project_cost, fin_result["emi"])

@@ -1,4 +1,8 @@
-"""Cloud storage package for generated reports and documents."""
-from .r2_client import upload_dpr_pdf, get_public_url
+"""Storage package for generated reports and documents."""
+from .local_storage import save_dpr_pdf, upload_dpr_pdf, get_public_url
 
-__all__ = ["upload_dpr_pdf", "get_public_url"]
+__all__ = [
+    "save_dpr_pdf",
+    "upload_dpr_pdf",
+    "get_public_url",
+]
