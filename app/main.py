@@ -28,7 +28,12 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database tables...")
     init_db()
     # If configured for unified cloud deployment, run Telegram bot polling in background thread
-    if settings.TELEGRAM_BOT_TOKEN and os.environ.get("RUN_TELEGRAM_POLLING", "").lower() == "true":
+    should_run_bot = (
+        bool(settings.TELEGRAM_BOT_TOKEN)
+        and not os.environ.get("PYTEST_CURRENT_TEST")
+        and os.environ.get("RUN_TELEGRAM_POLLING", "true").lower() == "true"
+    )
+    if should_run_bot:
         from scripts.run_telegram_polling import poll_telegram_updates
         logger.info("Starting integrated Telegram long-polling daemon thread...")
         t = threading.Thread(target=poll_telegram_updates, daemon=True)
@@ -88,7 +93,12 @@ def get_admin_dashboard():
     if os.path.exists(template_path):
         with open(template_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>Admin Console template not found</h1>", status_code=404)
+    return HTMLResponse(content="""
+    <html><body style="font-family: sans-serif; padding: 40px; text-align: center;">
+      <h2>🌾 Rural Enterprise AI Advisory Portal</h2>
+      <p>Admin template loading. View API at <a href="/health">/health</a> or <a href="/internal/proposals">/internal/proposals</a>.</p>
+    </body></html>
+    """)
 
 @app.get("/internal/proposals")
 def list_proposals(
