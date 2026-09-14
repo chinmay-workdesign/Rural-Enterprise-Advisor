@@ -14,11 +14,7 @@ class Settings(BaseSettings):
 
     # Google Gemini (Free Tier LLM & Multimodal Audio STT)
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-3.6-flash"
-
-    # Groq (Free Tier Whisper Large v3 STT from console.groq.com)
-    GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "whisper-large-v3"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
 
     # Database
     DATABASE_URL: Optional[str] = None
