@@ -57,8 +57,155 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+from app.auth.security import verify_password, hash_password
+
 st.markdown('<div class="main-header">🌾 State Channelizing Agency (SCA) - Field Officer Console</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Rural Micro-Enterprise WhatsApp Verification & Direct Loan Sanction Portal</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Rural Micro-Enterprise Advisory & Direct Loan Sanction Portal</div>', unsafe_allow_html=True)
+
+# Authentication State Gate
+if "authenticated_user" not in st.session_state:
+    st.session_state["authenticated_user"] = None
+
+if not st.session_state["authenticated_user"]:
+    st.info("🔒 **Authentication Required**: Please sign in with your official SCA officer credentials to access the loan appraisal console.")
+
+    auth_tab1, auth_tab2 = st.tabs(["🔑 Sign In", "📝 Register Officer"])
+
+    with auth_tab1:
+        st.write("##### Official SCA Officer Sign In")
+
+        # Instant demo access buttons
+        d_col1, d_col2 = st.columns(2)
+        with d_col1:
+            if st.button("👤 Quick Demo: Belagavi Field Officer", use_container_width=True):
+                db = SessionLocal()
+                try:
+                    crud.seed_default_users(db)
+                    user = crud.get_user_by_email(db, "officer.belagavi@sca.gov.in")
+                    if user:
+                        st.session_state["authenticated_user"] = {
+                            "id": user.id,
+                            "email": user.email,
+                            "full_name": user.full_name,
+                            "role": user.role,
+                            "district": user.district,
+                            "badge_number": user.badge_number
+                        }
+                        st.success("Authenticated as Belagavi Field Officer!")
+                        st.rerun()
+                finally:
+                    db.close()
+
+        with d_col2:
+            if st.button("🛡️ Quick Demo: State Administrator", use_container_width=True):
+                db = SessionLocal()
+                try:
+                    crud.seed_default_users(db)
+                    user = crud.get_user_by_email(db, "admin@sca.gov.in")
+                    if user:
+                        st.session_state["authenticated_user"] = {
+                            "id": user.id,
+                            "email": user.email,
+                            "full_name": user.full_name,
+                            "role": user.role,
+                            "district": user.district,
+                            "badge_number": user.badge_number
+                        }
+                        st.success("Authenticated as State Administrator!")
+                        st.rerun()
+                finally:
+                    db.close()
+
+        with st.form("login_form"):
+            login_email = st.text_input("Official Email Address", placeholder="officer@sca.gov.in")
+            login_pwd = st.text_input("Password", type="password")
+            login_submit = st.form_submit_button("Secure Sign In", use_container_width=True)
+
+            if login_submit:
+                if not login_email or not login_pwd:
+                    st.error("Please provide both email and password.")
+                else:
+                    db = SessionLocal()
+                    try:
+                        crud.seed_default_users(db)
+                        user = crud.get_user_by_email(db, login_email)
+                        if user and verify_password(login_pwd, user.hashed_password):
+                            st.session_state["authenticated_user"] = {
+                                "id": user.id,
+                                "email": user.email,
+                                "full_name": user.full_name,
+                                "role": user.role,
+                                "district": user.district,
+                                "badge_number": user.badge_number
+                            }
+                            st.success(f"Welcome, {user.full_name}!")
+                            st.rerun()
+                        else:
+                            st.error("Invalid official email or password.")
+                    finally:
+                        db.close()
+
+    with auth_tab2:
+        st.write("##### Register New Officer / Manager")
+        with st.form("signup_form"):
+            s_name = st.text_input("Full Officer Name", placeholder="e.g. Ramesh Patil")
+            s_email = st.text_input("Official Email", placeholder="e.g. ramesh.patil@sca.gov.in")
+            s_role = st.selectbox("Designation", ["FIELD_OFFICER", "DISTRICT_MANAGER", "ADMIN"])
+            s_district = st.selectbox("Assigned District", ["Belagavi", "Mandya", "Mysuru", "Dharwad", "Kalaburagi", "State HQ (Bengaluru)"])
+            s_badge = st.text_input("Official Badge / Employee ID", placeholder="e.g. SCA-FO-9042")
+            s_pwd = st.text_input("Create Password (min. 6 characters)", type="password")
+            signup_submit = st.form_submit_button("Register & Enter", use_container_width=True)
+
+            if signup_submit:
+                if not s_name or not s_email or not s_pwd:
+                    st.error("Please fill in all required fields.")
+                elif len(s_pwd) < 6:
+                    st.error("Password must be at least 6 characters.")
+                else:
+                    db = SessionLocal()
+                    try:
+                        existing = crud.get_user_by_email(db, s_email)
+                        if existing:
+                            st.error("An account with this official email already exists.")
+                        else:
+                            new_user = crud.create_user(db, {
+                                "email": s_email.strip().lower(),
+                                "hashed_password": hash_password(s_pwd),
+                                "full_name": s_name.strip(),
+                                "role": s_role,
+                                "district": s_district,
+                                "badge_number": s_badge.strip() if s_badge else None,
+                                "is_active": True
+                            })
+                            st.session_state["authenticated_user"] = {
+                                "id": new_user.id,
+                                "email": new_user.email,
+                                "full_name": new_user.full_name,
+                                "role": new_user.role,
+                                "district": new_user.district,
+                                "badge_number": new_user.badge_number
+                            }
+                            st.success("Account registered successfully!")
+                            st.rerun()
+                    finally:
+                        db.close()
+
+    st.stop()
+
+# When authenticated, render officer status and logout option in sidebar
+current_officer = st.session_state["authenticated_user"]
+st.sidebar.markdown(f"""
+<div style="background: #e8f5e9; padding: 12px; border-radius: 8px; border-left: 4px solid #0d5c3a; margin-bottom: 15px;">
+    <div style="font-size: 11px; color: #083c25; font-weight: 700;">VERIFIED OFFICER</div>
+    <div style="font-size: 14px; font-weight: 600; color: #0f172a;">{current_officer['full_name']}</div>
+    <div style="font-size: 12px; color: #64748b;">{current_officer['district']} • {current_officer['role']}</div>
+</div>
+""", unsafe_allow_html=True)
+
+if st.sidebar.button("🚪 Sign Out", use_container_width=True):
+    st.session_state["authenticated_user"] = None
+    st.rerun()
+
 
 # Sidebar Filters
 st.sidebar.header("🔍 Filter Proposals")

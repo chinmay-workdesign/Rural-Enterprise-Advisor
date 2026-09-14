@@ -2,8 +2,8 @@ import os
 import logging
 import threading
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -15,6 +15,8 @@ from app.db.session import engine, Base, get_db, init_db
 from app.db import crud, models
 from app.whatsapp.webhook_handler import router as whatsapp_router
 from app.whatsapp.client import send_whatsapp_text, send_whatsapp_document
+from app.auth.routes import router as auth_router, get_optional_current_user, COOKIE_NAME
+from app.auth.security import decode_access_token
 
 # Logging configuration
 logging.basicConfig(
@@ -27,6 +29,13 @@ logger = logging.getLogger("rural_advisor_app")
 async def lifespan(app: FastAPI):
     logger.info("Initializing database tables...")
     init_db()
+    try:
+        with Session(engine) as db:
+            crud.seed_default_users(db)
+            logger.info("Default SCA demo user accounts verified/seeded.")
+    except Exception as e:
+        logger.warning(f"Could not seed default users: {e}")
+
     # If configured for unified cloud deployment, run Telegram bot polling in background thread
     should_run_bot = (
         bool(settings.TELEGRAM_BOT_TOKEN)
@@ -60,10 +69,10 @@ static_dir = os.path.join(os.getcwd(), "static", "dprs")
 os.makedirs(static_dir, exist_ok=True)
 app.mount("/static/dprs", StaticFiles(directory=static_dir), name="static_dprs")
 
-# Include WhatsApp and Telegram Webhook routers
-from app.whatsapp.webhook_handler import router as whatsapp_router
+# Include Routers
 from app.telegram.webhook_handler import router as telegram_router
 
+app.include_router(auth_router)
 app.include_router(whatsapp_router)
 app.include_router(telegram_router)
 
@@ -85,10 +94,27 @@ def health_check():
         "environment": settings.ENVIRONMENT
     }
 
+@app.get("/login", response_class=HTMLResponse)
+def get_login_page(request: Request):
+    """Serves the secure Officer Authentication & Registration page."""
+    token = request.cookies.get(COOKIE_NAME)
+    if token and decode_access_token(token):
+        return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
+
+    login_template = os.path.join(os.path.dirname(__file__), "templates", "login.html")
+    if os.path.exists(login_template):
+        with open(login_template, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h2>SCA Portal login template loading...</h2>")
+
 @app.get("/", response_class=HTMLResponse)
 @app.get("/admin", response_class=HTMLResponse)
-def get_admin_dashboard():
-    """Serves the central SCA Field Officer & Admin Loan Appraisal Portal."""
+def get_admin_dashboard(request: Request):
+    """Serves the central SCA Field Officer & Admin Loan Appraisal Portal (Session Guarded)."""
+    token = request.cookies.get(COOKIE_NAME)
+    if not token or not decode_access_token(token):
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
     template_path = os.path.join(os.path.dirname(__file__), "templates", "admin.html")
     if os.path.exists(template_path):
         with open(template_path, "r", encoding="utf-8") as f:
@@ -99,6 +125,7 @@ def get_admin_dashboard():
       <p>Admin template loading. View API at <a href="/health">/health</a> or <a href="/internal/proposals">/internal/proposals</a>.</p>
     </body></html>
     """)
+
 
 @app.get("/internal/proposals")
 def list_proposals(
@@ -152,7 +179,8 @@ def list_proposals(
 def sanction_proposal(
     proposal_id: str,
     payload: VerificationRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_optional_current_user)
 ):
     """
     SCA Field Officer approval endpoint:
@@ -164,15 +192,20 @@ def sanction_proposal(
     if not proposal:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
+    officer_id = payload.field_officer_id
+    if current_user and (not officer_id or officer_id == "OFFICER-DEFAULT"):
+        officer_id = f"{current_user.full_name} ({current_user.badge_number or current_user.email})"
+
     # Record field verification
     verification_data = {
         "proposal_id": proposal.id,
-        "field_officer_id": payload.field_officer_id,
+        "field_officer_id": officer_id,
         "geo_latitude": payload.geo_latitude,
         "geo_longitude": payload.geo_longitude,
         "margin_money_verified": payload.margin_money_verified,
         "recommendation": payload.recommendation
     }
+
     crud.record_field_verification(db, verification_data)
 
     if payload.recommendation == "APPROVE":

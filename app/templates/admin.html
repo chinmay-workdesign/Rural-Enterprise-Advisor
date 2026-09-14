@@ -129,6 +129,71 @@
       background: rgba(255, 255, 255, 0.25);
     }
 
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      color: #ffffff;
+    }
+
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      background: var(--secondary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12px;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+      text-align: left;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .user-role-badge {
+      font-size: 10px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: #dc2626;
+      border-color: #dc2626;
+      color: #ffffff;
+    }
+
     .container {
       max-width: 1400px;
       margin: 28px auto 0;
@@ -649,11 +714,25 @@
       </div>
       <div class="header-actions">
         <span class="badge-live">Live Channel Active</span>
+
+        <div class="user-chip" id="user-chip" style="display: none;">
+          <div class="user-avatar" id="user-avatar">FO</div>
+          <div class="user-info">
+            <span class="user-name" id="user-display-name">Officer</span>
+            <span class="user-role-badge" id="user-display-role">Belagavi • FIELD_OFFICER</span>
+          </div>
+        </div>
+
         <button class="btn-refresh" onclick="loadProposals()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
           Refresh Data
         </button>
+
+        <button class="btn-logout" onclick="handleLogout()" title="Sign Out of SCA Portal">
+          <span>Sign Out</span> 🚪
+        </button>
       </div>
+
     </div>
   </header>
 
@@ -951,9 +1030,49 @@
       }).join('');
     }
 
+    let currentUser = null;
+
+    async function initAuth() {
+      try {
+        const res = await fetch('/auth/me');
+        if (!res.ok) {
+          window.location.href = '/login';
+          return;
+        }
+        currentUser = await res.json();
+        renderUserProfile();
+      } catch (err) {
+        window.location.href = '/login';
+      }
+    }
+
+    function renderUserProfile() {
+      if (!currentUser) return;
+      document.getElementById('user-chip').style.display = 'flex';
+      document.getElementById('user-display-name').innerText = currentUser.full_name;
+      document.getElementById('user-display-role').innerText = `${currentUser.district || 'All Districts'} • ${currentUser.role}`;
+
+      const names = currentUser.full_name.trim().split(' ');
+      const initials = (names[0][0] + (names.length > 1 ? names[names.length - 1][0] : '')).toUpperCase();
+      document.getElementById('user-avatar').innerText = initials || 'FO';
+    }
+
+    async function handleLogout() {
+      try {
+        await fetch('/auth/logout', { method: 'POST' });
+        localStorage.removeItem('sca_user');
+        window.location.href = '/login';
+      } catch (err) {
+        window.location.href = '/login';
+      }
+    }
+
     function openSanctionModal(proposalId, name, trade) {
       document.getElementById('modal-proposal-id').value = proposalId;
       document.getElementById('modal-title').innerText = `⚡ Sanction Appraisal: ${name} (${trade})`;
+      if (currentUser) {
+        document.getElementById('modal-officer-id').value = `${currentUser.full_name} (${currentUser.badge_number || currentUser.role})`;
+      }
       document.getElementById('sanction-modal').classList.add('active');
     }
 
@@ -1008,7 +1127,7 @@
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
         closeModal();
-        showToast(`✅ Proposal successfully updated to ${data.new_status}! Telegram notification dispatched.`);
+        showToast(`✅ Proposal successfully updated to ${data.new_status}! Notification dispatched.`);
         loadProposals();
       } catch (err) {
         alert("Failed to submit sanction: " + err.message);
@@ -1025,7 +1144,8 @@
       setTimeout(() => t.classList.remove('active'), 4000);
     }
 
-    // Initial Load
+    // Initial Authentication and Data Load
+    initAuth();
     loadProposals();
   </script>
 </body>

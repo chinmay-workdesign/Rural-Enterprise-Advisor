@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
-from .models import Beneficiary, EnterpriseProposal, SCAFieldVerification, WebhookEvent
+from .models import Beneficiary, EnterpriseProposal, SCAFieldVerification, WebhookEvent, User
 
 def get_or_create_beneficiary(db: Session, whatsapp_number: str, default_lang: Optional[str] = None) -> Beneficiary:
     """Find existing beneficiary by whatsapp number or create a new one."""
@@ -109,3 +109,59 @@ def record_webhook_event(db: Session, message_id: str, from_phone: str, msg_type
     db.commit()
     db.refresh(event)
     return event
+
+
+def get_user_by_email(db: Session, email: str) -> Optional[User]:
+    """Retrieve user by normalized lowercase email."""
+    if not email:
+        return None
+    return db.query(User).filter(User.email == email.strip().lower()).first()
+
+
+def get_user_by_id(db: Session, user_id: str) -> Optional[User]:
+    """Retrieve user by unique UUID."""
+    return db.query(User).filter(User.id == user_id).first()
+
+
+def create_user(db: Session, user_data: Dict[str, Any]) -> User:
+    """Create and persist a new user."""
+    normalized_data = dict(user_data)
+    if "email" in normalized_data:
+        normalized_data["email"] = normalized_data["email"].strip().lower()
+    user = User(**normalized_data)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def seed_default_users(db: Session) -> None:
+    """Pre-seed default demo accounts for instant evaluation if they don't exist."""
+    from app.auth.security import hash_password
+
+    # Default Field Officer
+    officer_email = "officer.belagavi@sca.gov.in"
+    if not get_user_by_email(db, officer_email):
+        create_user(db, {
+            "email": officer_email,
+            "hashed_password": hash_password("Officer@123"),
+            "full_name": "Ramesh Rao",
+            "role": "FIELD_OFFICER",
+            "district": "Belagavi",
+            "badge_number": "SCA-FO-8842",
+            "is_active": True
+        })
+
+    # Default State Administrator
+    admin_email = "admin@sca.gov.in"
+    if not get_user_by_email(db, admin_email):
+        create_user(db, {
+            "email": admin_email,
+            "hashed_password": hash_password("Admin@123"),
+            "full_name": "Dr. Priya Deshmukh",
+            "role": "ADMIN",
+            "district": "State HQ (Bengaluru)",
+            "badge_number": "SCA-DIR-001",
+            "is_active": True
+        })
+

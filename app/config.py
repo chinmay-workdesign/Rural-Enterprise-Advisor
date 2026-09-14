@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "INFO"
     BACKEND_INTERNAL_URL: str = "http://localhost:8000"
+    AUTH_SECRET_KEY: str = "sca_rural_enterprise_advisor_secret_key_2026_secure"
 
     model_config = SettingsConfigDict(
         env_file=".env",

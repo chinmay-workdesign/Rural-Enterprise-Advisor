@@ -71,3 +71,18 @@ class WebhookEvent(Base):
     from_phone = Column(String(30), nullable=False)
     msg_type = Column(String(20), nullable=False)
     received_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(String(36), primary_key=True, default=make_uuid)
+    email = Column(String(120), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(256), nullable=False)
+    full_name = Column(String(100), nullable=False)
+    role = Column(String(30), default="FIELD_OFFICER")  # FIELD_OFFICER, DISTRICT_MANAGER, ADMIN
+    district = Column(String(60), nullable=True, default="Belagavi")
+    badge_number = Column(String(50), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCA Officer Portal | Secure Sign In & Registration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0d5c3a;
+      --primary-dark: #083c25;
+      --primary-light: #e8f5e9;
+      --secondary: #d97706;
+      --secondary-hover: #b45309;
+      --bg: #0b1d16;
+      --surface: #ffffff;
+      --surface-subtle: #f8fafc;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 20%, #134e34 0%, #082419 60%, #03120c 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: var(--text);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background grid pattern */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    .auth-container {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: #ffffff;
+      padding: 32px 32px 28px;
+      text-align: center;
+      position: relative;
+    }
+
+    .auth-header .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 54px;
+      height: 54px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 14px;
+      font-size: 26px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .auth-header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .auth-header p {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-top: 6px;
+    }
+
+    /* Tab switcher */
+    .tab-bar {
+      display: flex;
+      background: #f1f5f9;
+      padding: 6px;
+      border-radius: 12px;
+      margin: 24px 32px 0;
+      gap: 6px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .tab-btn.active {
+      background: #ffffff;
+      color: var(--primary-dark);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .auth-body {
+      padding: 24px 32px 32px;
+    }
+
+    /* Quick Demo Bar */
+    .demo-bar {
+      background: var(--primary-light);
+      border: 1px dashed #86efac;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 12px;
+    }
+
+    .demo-bar-title {
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .demo-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-demo {
+      background: #ffffff;
+      border: 1px solid #bbf7d0;
+      color: var(--primary-dark);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .btn-demo:hover {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: #ffffff;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      outline: none;
+      background: #ffffff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(13, 92, 58, 0.12);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    .toggle-pwd {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px;
+    }
+
+    .toggle-pwd:hover {
+      color: var(--text);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 4px 14px rgba(13, 92, 58, 0.25);
+    }
+
+    .btn-submit:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(13, 92, 58, 0.35);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .error-alert {
+      display: none;
+      background: var(--danger-bg);
+      border: 1px solid #fecaca;
+      color: var(--danger);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 18px;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-alert.visible {
+      display: flex;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .auth-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="logo-badge">🌾</div>
+      <h1>State Channelizing Agency</h1>
+      <p>Rural Micro-Enterprise Advisory & Loan Appraisal Portal</p>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-login" onclick="switchMode('login')">Sign In</button>
+      <button class="tab-btn" id="tab-signup" onclick="switchMode('signup')">Register Officer</button>
+    </div>
+
+    <div class="auth-body">
+      <!-- Error Message Box -->
+      <div class="error-alert" id="error-alert">
+        <span>⚠️</span>
+        <span id="error-message">Invalid credentials</span>
+      </div>
+
+      <!-- Quick Demo Access (for evaluators) -->
+      <div class="demo-bar" id="demo-bar">
+        <div class="demo-bar-title">⚡ Instant Demo Access (Pre-seeded):</div>
+        <div class="demo-buttons">
+          <button type="button" class="btn-demo" onclick="fillDemo('officer.belagavi@sca.gov.in', 'Officer@123')">
+            👤 Belagavi Field Officer
+          </button>
+          <button type="button" class="btn-demo" onclick="fillDemo('admin@sca.gov.in', 'Admin@123')">
+            🛡️ State Administrator
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= SIGN IN FORM ================= -->
+      <form id="form-login" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Official Email Address</label>
+          <div class="input-wrapper">
+            <input type="email" id="login-email" class="form-input" placeholder="e.g. officer@sca.gov.in" required autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="login-password" class="form-input" placeholder="Enter password" required autocomplete="current-password">
+            <button type="button" class="toggle-pwd" onclick="togglePassword('login-password', this)">Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-login-submit">
+          <span>Secure Sign In</span> ➜
+        </button>
+      </form>
+
+      <!-- ================= SIGN UP FORM ================= -->
+      <form id="form-signup" class="hidden" onsubmit="handleSignup(event)">
+        <div class="form-group">
+          <label class="form-label" for="signup-name">Full Officer Name</label>
+          <input type="text" id="signup-name" class="form-input" placeholder="e.g. Ramesh Patil" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-email">Official Email</label>
+          <input type="email" id="signup-email" class="form-input" placeholder="e.g. ramesh.patil@sca.gov.in" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="signup-role">Designation</label>
+            <select id="signup-role" class="form-select">
+              <option value="FIELD_OFFICER" selected>Field Officer (SCA)</option>
+              <option value="DISTRICT_MANAGER">District Manager</option>
+              <option value="ADMIN">Appraisal Director</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-district">Assigned District</label>
+            <select id="signup-district" class="form-select">
+              <option value="Belagavi" selected>Belagavi</option>
+              <option value="Mandya">Mandya</option>
+              <option value="Mysuru">Mysuru</option>
+              <option value="Dharwad">Dharwad</option>
+              <option value="Kalaburagi">Kalaburagi</option>
+              <option value="Bengaluru Rural">Bengaluru Rural</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-badge">Official Badge / Employee ID</label>
+          <input type="text" id="signup-badge" class="form-input" placeholder="e.g. SCA-FO-9042">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="signup-password">Create Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="signup-password" class="form-input" placeholder="Min. 6 characters" minlength="6" required>
+            <button type="button" class="toggle-pwd" onclick="togglePassword('signup-password', this)">Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-signup-submit">
+          <span>Complete Registration & Enter</span> ➜
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        🔒 Authorized SCA personnel only. All access is audited.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchMode(mode) {
+      clearError();
+      const tabLogin = document.getElementById('tab-login');
+      const tabSignup = document.getElementById('tab-signup');
+      const formLogin = document.getElementById('form-login');
+      const formSignup = document.getElementById('form-signup');
+      const demoBar = document.getElementById('demo-bar');
+
+      if (mode === 'signup') {
+        tabLogin.classList.remove('active');
+        tabSignup.classList.add('active');
+        formLogin.classList.add('hidden');
+        formSignup.classList.remove('hidden');
+        demoBar.classList.add('hidden');
+      } else {
+        tabSignup.classList.remove('active');
+        tabLogin.classList.add('active');
+        formSignup.classList.add('hidden');
+        formLogin.classList.remove('hidden');
+        demoBar.classList.remove('hidden');
+      }
+    }
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerText = 'Hide';
+      } else {
+        input.type = 'password';
+        btn.innerText = 'Show';
+      }
+    }
+
+    function fillDemo(email, pwd) {
+      switchMode('login');
+      document.getElementById('login-email').value = email;
+      document.getElementById('login-password').value = pwd;
+      clearError();
+      // Auto submit demo
+      handleLogin(new Event('submit'));
+    }
+
+    function showError(msg) {
+      const alertBox = document.getElementById('error-alert');
+      const alertMsg = document.getElementById('error-message');
+      alertMsg.innerText = msg;
+      alertBox.classList.add('visible');
+    }
+
+    function clearError() {
+      const alertBox = document.getElementById('error-alert');
+      alertBox.classList.remove('visible');
+    }
+
+    async function handleLogin(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      clearError();
+
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const submitBtn = document.getElementById('btn-login-submit');
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>Authenticating...</span> ⏳`;
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Authentication failed');
+        }
+
+        // Store active user in localStorage for fast UI rendering
+        localStorage.setItem('sca_user', JSON.stringify(data.user));
+        // Redirect to admin dashboard
+        window.location.href = '/admin';
+      } catch (err) {
+        showError(err.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Secure Sign In</span> ➜`;
+      }
+    }
+
+    async function handleSignup(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      clearError();
+
+      const fullName = document.getElementById('signup-name').value;
+      const email = document.getElementById('signup-email').value;
+      const role = document.getElementById('signup-role').value;
+      const district = document.getElementById('signup-district').value;
+      const badgeNumber = document.getElementById('signup-badge').value;
+      const password = document.getElementById('signup-password').value;
+      const submitBtn = document.getElementById('btn-signup-submit');
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>Registering Account...</span> ⏳`;
+
+      try {
+        const res = await fetch('/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            full_name: fullName,
+            email: email,
+            role: role,
+            district: district,
+            badge_number: badgeNumber,
+            password: password
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Registration failed');
+        }
+
+        localStorage.setItem('sca_user', JSON.stringify(data.user));
+        window.location.href = '/admin';
+      } catch (err) {
+        showError(err.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Complete Registration & Enter</span> ➜`;
+      }
+    }
+  </script>
+</body>
+</html>
